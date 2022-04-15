@@ -22,10 +22,35 @@ export const TransactionProvider = ({ children }) => {
     const [formData, setFormData] = useState({ addressTo: '', amount: '', keyword: '', message: ''});
     const [isLoading, setIsLoading] = useState(false);
     const [transactionCount, setTransactionCount] = useState(localStorage.getItem('transactionCount'));
+    const [transactions, setTransactions] = useState([]);
 
     //https://sebhastian.com/handlechange-react/
     const handleChange = (event, name) => {
         setFormData((prevState) => ({...prevState,[name]: event.target.value }));
+    }
+
+    const getAllTransactions = async () => {
+        try {
+            if (!ethereum) return alert("You need install metamask first");
+
+            const transactionContract = getEthereumContract();
+            const availableTransactions = await transactionContract.getAllTransactions();
+            const structureTransactions = availableTransactions.map((transaction) => ({
+                addressTo: transaction.receiver,
+                addressFrom: transaction.sender,
+                message: transaction.message,
+                keyword: transaction.keyword,
+                amount: parseInt(transaction.amount._hex) / (10 ** 18),
+                timestamp: new Date(transaction.timestamp.toNumber() * 1000).toLocaleString()
+            }))
+
+            console.log(structureTransactions);
+            setTransactions(structureTransactions);
+            
+            
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const checkIfWalletIsConnected = async () => {
@@ -39,12 +64,10 @@ export const TransactionProvider = ({ children }) => {
             if (accounts.length) {
                 setCurrentAccount(accounts[0]);
 
-                //getAllTransactions();
+                getAllTransactions();
             } else {
                 console.log("No accounts found");
             }
-
-            console.log(accounts);
 
         } catch (error) {
             console.log(error);
@@ -52,6 +75,21 @@ export const TransactionProvider = ({ children }) => {
             throw new Error("No ethereum object.")
         }
 
+    }
+
+    const checkIfTransactionsExist = async () => {
+        try {
+            const transactionContract = getEthereumContract();
+            const transactionCount = await transactionContract.getTransactionCount();
+
+            window.localStorage.setItem("transactionCount", transactionCount);
+
+
+        } catch(error) {
+            console.log(error);
+
+            throw new Error("No ethereum object.")
+        }
     }
 
     const connectWallet = async () => {
@@ -108,11 +146,13 @@ export const TransactionProvider = ({ children }) => {
     useEffect(() => {
         //一進網頁先檢查錢包是否有連線
         checkIfWalletIsConnected();
+        //先檢查是否有之前交易紀錄
+        checkIfTransactionsExist();
     }, []);
 
     return (
         //將TransationProvider裡面的state,fuction直接提供給需要的component
-        <TransactionContext.Provider value={{ connectWallet, currentAccount, formData, handleChange, sendTransaction, isLoading}}>
+        <TransactionContext.Provider value={{ connectWallet, currentAccount, formData, handleChange, sendTransaction, isLoading, transactions}}>
             {children}
         </TransactionContext.Provider>
     )

@@ -3,6 +3,8 @@ import { ethers } from 'ethers';
 
 import { contractABI, contractAddress } from '../utils/constants';
 
+import { alchemyAPI_KEY } from "../utils/alchemy";
+
 
 export const TransactionContext = React.createContext();
 
@@ -19,14 +21,15 @@ const getEthereumContract = () => {
 export const TransactionProvider = ({ children }) => {
 
     const [currentAccount, setCurrentAccount] = useState("")
-    const [formData, setFormData] = useState({ addressTo: '', amount: '', keyword: '', message: ''});
+    const [formData, setFormData] = useState({ addressTo: '', amount: '', keyword: '', message: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [transactionCount, setTransactionCount] = useState(localStorage.getItem('transactionCount'));
     const [transactions, setTransactions] = useState([]);
+    const [NFTs, setNFTs] = useState([]);
 
     //https://sebhastian.com/handlechange-react/
     const handleChange = (event, name) => {
-        setFormData((prevState) => ({...prevState,[name]: event.target.value }));
+        setFormData((prevState) => ({ ...prevState, [name]: event.target.value }));
     }
 
     const getAllTransactions = async () => {
@@ -46,11 +49,35 @@ export const TransactionProvider = ({ children }) => {
 
             console.log(structureTransactions);
             setTransactions(structureTransactions);
-            
-            
+
+
         } catch (error) {
             console.log(error);
         }
+    }
+
+    const getNFTs = async (account) => {
+
+        try {
+
+            //抓取主網上的NFT
+            const response = await fetch(`https://eth-mainnet.alchemyapi.io/v2/${alchemyAPI_KEY}/getNFTs?owner=${account}`)
+            const jsonData = await response.json();
+            const NFTData = jsonData.ownedNfts;
+
+            const formatNFTs = NFTData.map((NFT) => ({
+                title: NFT.title,
+                url: NFT.media[0].gateway
+            }))
+
+            console.log(formatNFTs);
+            console.log(formatNFTs.sort());
+            setNFTs(formatNFTs.sort());
+
+        } catch (error) {
+            console.log(error);
+        }
+
     }
 
     const checkIfWalletIsConnected = async () => {
@@ -65,6 +92,8 @@ export const TransactionProvider = ({ children }) => {
                 setCurrentAccount(accounts[0]);
 
                 getAllTransactions();
+
+                getNFTs(accounts[0]);
             } else {
                 console.log("No accounts found");
             }
@@ -85,7 +114,7 @@ export const TransactionProvider = ({ children }) => {
             window.localStorage.setItem("transactionCount", transactionCount);
 
 
-        } catch(error) {
+        } catch (error) {
             console.log(error);
 
             throw new Error("No ethereum object.")
@@ -110,13 +139,13 @@ export const TransactionProvider = ({ children }) => {
         try {
             if (!ethereum) return alert("You need install metamask first");
 
-            const {addressTo, amount, keyword, message} = formData;
+            const { addressTo, amount, keyword, message } = formData;
             const transactionContract = getEthereumContract();
             const parsedAmount = ethers.utils.parseEther(amount);
 
 
             await ethereum.request({
-                method:'eth_sendTransaction',
+                method: 'eth_sendTransaction',
                 params: [{
                     from: currentAccount,
                     to: formData.addressTo,
@@ -136,7 +165,7 @@ export const TransactionProvider = ({ children }) => {
             const transactionCount = await transactionContract.getTransactionCount();
             setTransactionCount(transactionCount.toNumber());
 
-        } catch(error) {
+        } catch (error) {
             console.log(error);
 
             throw new Error("No ethereum object.")
@@ -152,7 +181,7 @@ export const TransactionProvider = ({ children }) => {
 
     return (
         //將TransationProvider裡面的state,fuction直接提供給需要的component
-        <TransactionContext.Provider value={{ connectWallet, currentAccount, formData, handleChange, sendTransaction, isLoading, transactions}}>
+        <TransactionContext.Provider value={{ connectWallet, currentAccount, formData, handleChange, sendTransaction, isLoading, transactions, NFTs }}>
             {children}
         </TransactionContext.Provider>
     )

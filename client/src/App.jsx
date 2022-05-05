@@ -1,7 +1,8 @@
-import { Footer,Navbar,Services,Transactions,Welcome  } from "./components"
+import { Footer, Navbar, Services, Transactions, Welcome } from "./components"
+import NFTs from "./components/NFTs";
 
 const App = () => {
-  
+
   return (
     <div className="mid-h-screen">
       <div className="gradient-bg-welcome">
@@ -9,8 +10,11 @@ const App = () => {
         <Welcome />
       </div>
       <Services />
-      <Transactions />
-      <Footer/>
+      <div className="gradient-bg-transactions">
+        <Transactions />
+        <NFTs />
+      </div>
+      <Footer />
     </div>
   )
 }

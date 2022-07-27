@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import { TransactionContext } from '../context/TransactionContext';
 
-const NFTCard = ({ title, url }) => {
+const NFTCard = ({ title, image , url }) => {
     return (
         <div className="bg-[#181918] m-4 flex flex-1
-            2xl:min-w-[450px]
+            2xl:min-w-[400px]
             2xl:max-w-[500px]
             sm:min-w-[270px]
             sm:max-w-[300px]
@@ -12,16 +12,16 @@ const NFTCard = ({ title, url }) => {
         ">
             <div className="flex flex-col items-center w-full mt-3">
                 <img
-                    src={url}
+                    src={image}
                     alt="image"
                     className="w-full h-64 2xl:h-96 rounded-md shadow-lg object-cover"
                 />
 
 
-                <div className="bg-black p-3 px-5 w-max rounded-3xl -mt-5 shadow-2xl">
-                    <p className="text-[#73c7da] font-blod">{title}</p>
-                </div>
+                <a href={url} target="_blank" className='text-[#fff] font-blod rounded-md -mt-2'><span>{title}</span></a>
+
             </div>
+            
         </div>
     );
 }

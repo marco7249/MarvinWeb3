@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import { contractABI, contractAddress } from '../utils/constants';
 
 import { alchemyAPI_KEY } from "../utils/alchemy";
+import { OpenSeaKey } from "../utils/opensea";
 
 
 export const TransactionContext = React.createContext();
@@ -61,13 +62,19 @@ export const TransactionProvider = ({ children }) => {
         try {
 
             //抓取主網上的NFT
-            const response = await fetch(`https://eth-mainnet.alchemyapi.io/v2/${alchemyAPI_KEY}/getNFTs?owner=${account}`)
+            const options = {
+                method: 'GET',
+                headers: {Accept: 'application/json', 'X-API-KEY': `${OpenSeaKey}`}
+              };
+
+            const response = await fetch(`https://api.opensea.io/api/v1/assets?owner=${account}`,options);
             const jsonData = await response.json();
-            const NFTData = jsonData.ownedNfts;
+            const NFTData = jsonData.assets;
 
             const formatNFTs = NFTData.map((NFT) => ({
-                title: NFT.title,
-                url: NFT.media[0].gateway
+                title: NFT.name,
+                image: NFT.image_url,
+                url: NFT.permalink
             }))
 
             console.log(formatNFTs);

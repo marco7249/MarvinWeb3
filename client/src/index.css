@@ -79,6 +79,37 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+a {
+  position: relative;
+  text-decoration: none;
+  background: #fff;
+  color: #fff;
+  letter-spacing: 0.1em;
+  transition: 0.5s;
+  padding: 5px 10px;
+  --clr:#ff70a7;
+}
+
+a:hover {
+  color: var(--clr);
+  background: var(--clr);
+  box-shadow: 0 0 15px var(--clr);
+  letter-spacing: 0.2em;
+}
+
+a:before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: #27282c;
+  border-radius: 5px;
+}
+
+a span {
+  position: relative;
+  z-index: 1;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
